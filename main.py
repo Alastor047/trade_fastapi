@@ -1,21 +1,27 @@
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
+from fastapi_users import FastAPIUsers
+from user_auth.auth import auth_backend
+from user_auth.schemas import UserRead, UserCreate
+from user_auth.database import User
+from user_auth.manager import get_user_manager
 
 app = FastAPI(
     title="Trading app"
 )
 
+fastapi_users = FastAPIUsers[User, int](
+    get_user_manager,
+    [auth_backend],
+)
 
-async def common_parameters(
-    q: str | None = None, skip: int = 0, limit: int = 100
-):
-    return {"q": q, "skip": skip, "limit": limit}
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth/jwt",
+    tags=["auth"],
+)
 
-
-@app.get("/items/")
-async def read_items(commons: dict = Depends(common_parameters)):
-    return commons
-
-
-@app.get("/users/")
-async def read_users(commons: dict = Depends(common_parameters)):
-    return commons
+app.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+)

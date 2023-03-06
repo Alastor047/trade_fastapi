@@ -20,6 +20,7 @@ Base: DeclarativeMeta = declarative_base()
 
 
 class User(SQLAlchemyBaseUserTable[int], Base):
+    id = Column(Integer, primary_key=True)
     username = Column(String, nullable=False)
     registered_at = Column(TIMESTAMP, default=datetime.utcnow)
     role_id = Column(Integer, ForeignKey(role.c.id))
